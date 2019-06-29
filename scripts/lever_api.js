@@ -37,6 +37,8 @@ export default class LeverApi {
         let candidates = data;
         while (hasNext) {
             const listCandidates = `${LIST_CANDIDATES}&offset=${next}`;
+            // Block inside this loop since this makes an API call.
+            // eslint-disable-next-line no-await-in-loop
             ({ data, hasNext, next } = await this.fetchLeverData(listCandidates));
             candidates = [
                 ...candidates,
