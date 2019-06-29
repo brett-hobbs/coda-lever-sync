@@ -1,0 +1,50 @@
+{
+  "dependencies": {
+    "base-64": "^0.1.0",
+    "btoa": "^1.2.1",
+    "coda-js": "^1.0.3",
+    "express": "^4.16.4",
+    "lodash": "^4.17.11",
+    "minimist": "^1.2.0",
+    "node-fetch": "^2.3.0"
+  },
+  "name": "coda-lever-sync",
+  "description": "Code for syncing Lever (ATS) candidates into a Coda.io table",
+  "version": "1.0.0",
+  "main": "index.js",
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.4.3",
+    "eslint": "^6.0.1",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-react": "^7.12.4",
+    "path": "^0.12.7"
+  },
+  "scripts": {
+    "sync": "babel-node ./scripts/sync_candidates.js",
+    "lint": "./node_modules/.bin/eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brett-hobbs/coda-lever-sync.git"
+  },
+  "keywords": [
+    "coda",
+    "lever"
+  ],
+  "author": "Brett Hobbs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brett-hobbs/coda-lever-sync/issues"
+  },
+  "homepage": "https://github.com/brett-hobbs/coda-lever-sync#readme"
+}
