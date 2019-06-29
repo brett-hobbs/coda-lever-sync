@@ -1,0 +1,22 @@
+{
+  "name": "Lever synchronization to Coda API",
+  "description": "This app supports synchronization of a table of candidates to a Coda document.",
+  "keywords": [
+    "productivity",
+    "Lever",
+    "Coda"
+  ],
+  "repository": "https://github.com/brett-hobbs/coda-lever-sync",
+  "env": {
+  },
+  "image": "heroku/nodejs",
+  "addons": [
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "environments": {
+  }
+}
