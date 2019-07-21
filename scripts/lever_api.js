@@ -1,5 +1,8 @@
 import _ from 'lodash';
 import fetch from 'node-fetch';
+import buildUrl from 'build-url';
+
+const LEVER_API = 'https://api.lever.co/v1';
 
 export default class LeverApi {
   constructor(auth) {
@@ -30,37 +33,32 @@ export default class LeverApi {
       }, {}));
   }
 
-  async fetchCandidatesUpdatedSinceTimestamp(postingId, timestamp) {
-    const LIST_CANDIDATES = `https://api.lever.co/v1/candidates?expand=owner&posting_id=${postingId}&updated_at_start=${timestamp}`;
-    //archived_posting_id
-    let { data, hasNext, next } = await this.fetchLeverData(LIST_CANDIDATES);
-    let candidates = data;
+  async fetchCandidatesUpdatedSinceTimestamp({ postingId, archivedPostingId, timestamp }) {
+    let candidates = [];
+    let next = null;
+    let hasNext = true;
     while (hasNext) {
-      const listCandidates = `${LIST_CANDIDATES}&offset=${next}`;
+      const listCandidatesUrl = buildUrl(LEVER_API, {
+        path: 'candidates',
+        queryParams: {
+          expand: 'owner',
+          posting_id: postingId || '',
+          archived_posting_id: archivedPostingId || '',
+          updated_at_start: timestamp,
+          offset: next || '',
+        },
+      });
+      console.log(listCandidatesUrl);
       // Block inside this loop since this makes an API call.
       // eslint-disable-next-line no-await-in-loop
-      ({ data, hasNext, next } = await this.fetchLeverData(listCandidates));
+      const response = await this.fetchLeverData(listCandidatesUrl);
+      const { data } = response;
       candidates = [
         ...candidates,
         ...data,
       ];
-    }
-    return candidates;
-  }
 
-  async fetchArchivedCandidatesUpdatedSinceTimestamp(postingId, timestamp) {
-    const LIST_CANDIDATES = `https://api.lever.co/v1/candidates?expand=owner&archived_posting_id=${postingId}&updated_at_start=${timestamp}`;
-    let { data, hasNext, next } = await this.fetchLeverData(LIST_CANDIDATES);
-    let candidates = data;
-    while (hasNext) {
-      const listCandidates = `${LIST_CANDIDATES}&offset=${next}`;
-      // Block inside this loop since this makes an API call.
-      // eslint-disable-next-line no-await-in-loop
-      ({ data, hasNext, next } = await this.fetchLeverData(listCandidates));
-      candidates = [
-        ...candidates,
-        ...data,
-      ];
+      ({ hasNext, next } = response);
     }
     return candidates;
   }

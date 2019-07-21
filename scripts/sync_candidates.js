@@ -28,9 +28,9 @@ async function main() {
   const timestamp = createdTimestamp || Date.now() - hoursSinceUpdated * 3600000;
   const postingIds = postingIdsCommaSperated.split(',');
   const fetchPromises = [];
-  _.forEach(postingIds, (pid) => {
-    fetchPromises.push(lever.fetchCandidatesUpdatedSinceTimestamp(pid, timestamp));
-    fetchPromises.push(lever.fetchArchivedCandidatesUpdatedSinceTimestamp(pid, timestamp));
+  _.forEach(postingIds, (postingId) => {
+    fetchPromises.push(lever.fetchCandidatesUpdatedSinceTimestamp({ postingId, timestamp }));
+    fetchPromises.push(lever.fetchCandidatesUpdatedSinceTimestamp({ archivedPostingId: postingId, timestamp }));
   });
   const results = await Promise.all(fetchPromises);
 
