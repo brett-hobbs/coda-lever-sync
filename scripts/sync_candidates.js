@@ -7,27 +7,30 @@ import LeverApi from './lever_api';
 const args = minimist(process.argv.slice(2));
 
 async function main() {
-  // Move from to descriptive arguments
   const {
     // Lever
-    l: leverAuth,
-    p: postingIdsCommaSperated,
-    t: timest, // create since timestamp
+    lever_auth: leverAuth,
+    posting_ids: postingIdsCommaSperated,
+    created_timestamp: createdTimestamp,
     hours_since_updated: hoursSinceUpdated,
     // Coda
-    c: codaAuth,
-    d: docId,
-    g: tableId,
+    coda_auth: codaAuth,
+    doc_id: docId,
+    table_id: tableId,
   } = args;
 
   const lever = new LeverApi(leverAuth);
-  // Clean this up, but --t is good for back filling and --hours_since_updated is good for scheduled updates
-  const timestamp = timest || Date.now() - hoursSinceUpdated * 3600000;
+
   const stagesMap = await lever.fetchStagesMap();
+
+  // Clean this up, but --created_timestamp is good for back filling
+  // and --hours_since_updated is good for a scheduled update
+  const timestamp = createdTimestamp || Date.now() - hoursSinceUpdated * 3600000;
   const postingIds = postingIdsCommaSperated.split(',');
   const fetchPromises = [];
   _.forEach(postingIds, (pid) => {
     fetchPromises.push(lever.fetchCandidatesUpdatedSinceTimestamp(pid, timestamp));
+    fetchPromises.push(lever.fetchArchivedCandidatesUpdatedSinceTimestamp(pid, timestamp));
   });
   const results = await Promise.all(fetchPromises);
 
@@ -49,6 +52,7 @@ async function main() {
     'last interaction': new Date(c.lastInteractionAt),
     stage: stagesMap[c.stage],
     url: c.urls.show,
+    archived: _.get(c, 'archived.archivedAt') && new Date(c.archived.archivedAt),
   }));
 
   console.log(`Found ${leverCandidates.length} candidates`);
