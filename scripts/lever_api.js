@@ -48,7 +48,7 @@ export default class LeverApi {
           offset: next || '',
         },
       });
-      console.log(listCandidatesUrl);
+
       // Block inside this loop since this makes an API call.
       // eslint-disable-next-line no-await-in-loop
       const response = await this.fetchLeverData(listCandidatesUrl);

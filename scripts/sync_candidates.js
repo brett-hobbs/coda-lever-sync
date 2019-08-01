@@ -13,23 +13,26 @@ async function main() {
   const {
     // Lever
     lever_auth: leverAuth,
-    posting_ids: postingIdsCommaSperated,
     created_timestamp: createdTimestamp,
     hours_since_updated: hoursSinceUpdated,
     // Coda
     coda_auth: codaAuth,
     doc_id: docId,
-    table_id: tableId,
   } = args;
 
   const lever = new LeverApi(leverAuth);
+  const coda = new Coda(codaAuth);
+  const doc = await coda.getDoc(docId);
+
+  const postingsTable = await doc.getTable('Postings');
+  const rows = await postingsTable.listRows({ useColumnNames: true });
+  const postingIds = _.map(rows, 'values.id');
 
   const stagesMap = await lever.fetchStagesMap();
 
   // Clean this up, but --created_timestamp is good for back filling
   // and --hours_since_updated is good for a scheduled update
   const timestamp = createdTimestamp || Date.now() - hoursSinceUpdated * HOUR_IN_MS;
-  const postingIds = postingIdsCommaSperated.split(',');
   const fetchPromises = [];
   _.forEach(postingIds, (postingId) => {
     fetchPromises.push(lever.fetchCandidatesUpdatedSinceTimestamp({ postingId, timestamp }));
@@ -58,20 +61,15 @@ async function main() {
     archived: _.get(c, 'archived.archivedAt') && new Date(c.archived.archivedAt),
   }));
 
-  console.log(`Found ${flatCandidates.length} candidates`);
-
   const candidates = _.uniqBy(flatCandidates, 'id');
-
   console.log(`Found ${candidates.length} unique candidates`);
 
   if (candidates.length > 0) {
-    const coda = new Coda(codaAuth);
-    const doc = await coda.getDoc(docId);
-    const table = await doc.getTable(tableId);
+    const candidatesTable = await doc.getTable('Candidates');
     const keyColumns = ['id'];
     const upsertPromises = [];
     _.forEach(_.chunk(candidates, UPSERT_CHUNK_SIZE), (chunk) => {
-      upsertPromises.push(table.insertRows(chunk, keyColumns));
+      upsertPromises.push(candidatesTable.insertRows(chunk, keyColumns));
     });
     await Promise.all(upsertPromises);
   }
