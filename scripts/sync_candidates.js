@@ -6,6 +6,9 @@ import LeverApi from './lever_api';
 // Command line arguments
 const args = minimist(process.argv.slice(2));
 
+const HOUR_IN_MS = 3600000;
+const UPSERT_CHUNK_SIZE = 100;
+
 async function main() {
   const {
     // Lever
@@ -25,7 +28,7 @@ async function main() {
 
   // Clean this up, but --created_timestamp is good for back filling
   // and --hours_since_updated is good for a scheduled update
-  const timestamp = createdTimestamp || Date.now() - hoursSinceUpdated * 3600000;
+  const timestamp = createdTimestamp || Date.now() - hoursSinceUpdated * HOUR_IN_MS;
   const postingIds = postingIdsCommaSperated.split(',');
   const fetchPromises = [];
   _.forEach(postingIds, (postingId) => {
@@ -55,15 +58,19 @@ async function main() {
     archived: _.get(c, 'archived.archivedAt') && new Date(c.archived.archivedAt),
   }));
 
-  console.log(`Found ${leverCandidates.length} candidates`);
+  console.log(`Found ${flatCandidates.length} candidates`);
 
-  if (flatCandidates.length > 0) {
+  const candidates = _.uniqBy(flatCandidates, 'id');
+
+  console.log(`Found ${candidates.length} unique candidates`);
+
+  if (candidates.length > 0) {
     const coda = new Coda(codaAuth);
     const doc = await coda.getDoc(docId);
     const table = await doc.getTable(tableId);
     const keyColumns = ['id'];
     const upsertPromises = [];
-    _.forEach(_.chunk(flatCandidates, 100), (chunk) => {
+    _.forEach(_.chunk(candidates, UPSERT_CHUNK_SIZE), (chunk) => {
       upsertPromises.push(table.insertRows(chunk, keyColumns));
     });
     await Promise.all(upsertPromises);
