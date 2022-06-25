@@ -12,7 +12,7 @@
     "express": "^4.16.4",
     "lodash": "^4.17.11",
     "minimist": "^1.2.0",
-    "node-fetch": "^2.3.0"
+    "node-fetch": "^2.6.7"
   },
   "name": "coda-lever-sync",
   "description": "Code for syncing Lever (ATS) candidates into a Coda.io table",
